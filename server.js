@@ -1,59 +1,59 @@
-// import express from "express";
-// import dotenv from "dotenv";
-// import connectDB from "./config/db.js";
-// import User from "./model/user.js";
-
-// dotenv.config();
-
-// const app = express();
-// app.use(express.json());
-
-// connectDB();
-
-// app.post('/users',async(req,res) => {
-//     try{
-//         const user = await User.create(req.body);
-//         res.status(201).json(user);
-//     }catch(error){
-//         res.status(500).json({
-//             error:err.message,
-//         });
-//     }
-// });
-
-// const PORT = process.env.PORT || 5002;
-// app.listen(PORT,() => {
-//     console.log(`Server is running ${PORT}`);
-    
-// })   
-
 import express from "express";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
+import dotenv from "dotenv"; //secret files 
+import connectDB from "./config/db.js"; //db.js file ke ander ek function hai connect krne ka
+import User from "./model/user.js"; // data kis form me aayega
 
-dotenv.config();
+dotenv.config(); //
 
-const app = express();
+const app = express(); 
+app.use(express.json()); //json format ke andr 
 
-// MongoDB connect
-mongoose
-  .connect(process.env.MONGO_URL)
-  .then(() => {
-    console.log("MongoDB connected successfully");
-  })
-  .catch((err) => {
-    console.log("MongoDB connection failed", err);
-  });
+connectDB(); //function call databse se connect krwayega
 
-// server
-app.get("/", (req, res) => {
-  res.send("Server is working  ...");
+app.post('/users',async(req,res) => { 
+    try{
+        const user = await User.create(req.body);
+        res.status(201).json({user,message:'sucess'});
+    }catch(error){
+        res.status(500).json({
+            error:error.message,
+        });
+    }
 });
 
-const PORT = process.env.PORT || 3000;
+app.delete('/users', async (req, res) => {
+    try {
+        const { email } = req.body;   // body se name nikala
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        const user = await User.findOneAndDelete({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({
+            message: 'User deleted successfully',
+            user
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        });
+    }
 });
 
- 
+
+app.get('/',(req,res)=>{
+    res.send('Server is working');
+})
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT,() => {
+    console.log(`Server is running bro ${PORT}`);
+    
+})    
